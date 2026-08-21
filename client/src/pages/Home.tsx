@@ -17,6 +17,11 @@ export default function Home() {
   const root = useRef<HTMLDivElement>(null);
   useScrollReveal(root);
 
+  // Home owns its nav (no SiteLayout), so reset scroll on route entry here.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div ref={root} dir="rtl">
       <Hero />

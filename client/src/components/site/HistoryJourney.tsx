@@ -68,6 +68,7 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
     window.addEventListener("resize", measure);
 
     const panelColours = milestones.map(m => hexToRgb(m.bg));
+    const staged = new Set<number>();
 
     const loop = () => {
       raf = requestAnimationFrame(loop);
@@ -91,8 +92,38 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
       track.style.transform = `translate3d(${x}px,0,0)`;
       setProgress(smooth.current);
 
-      // Blend the panel background colours weighted by how centred each one is.
       const W = window.innerWidth;
+
+      // Photos drift against the filmstrip and breathe from a slight zoom to
+      // rest as their panel centres — the counter-movement is what lets one
+      // image hand over to the next instead of hard-cutting at the mask edge.
+      // Year numbers and the 2026 ghost outline drift on their own rates.
+      Array.from(track.children).forEach((child, i) => {
+        const el = child as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        if (rect.right < -W * 0.3 || rect.left > W * 1.3) return;
+        const t = (rect.left + rect.width / 2 - W / 2) / W;
+        const vis = clamp(1 - Math.abs(t) * 1.15, 0, 1);
+        const inner = el.querySelector<HTMLElement>("[data-inner]");
+        if (inner) {
+          inner.style.transform = `translate3d(${(t * 30).toFixed(2)}px,0,0) scale(${(1.06 - vis * 0.06).toFixed(4)})`;
+        }
+        const num = el.querySelector<HTMLElement>("[data-num]");
+        if (num) {
+          num.style.transform = `translate3d(${(t * W * 0.05).toFixed(1)}px,${(Math.abs(t) * 18).toFixed(1)}px,0)`;
+        }
+        const ghost = el.querySelector<HTMLElement>("[data-ghost]");
+        if (ghost) {
+          ghost.style.transform = `translate3d(${(t * W * 0.16).toFixed(1)}px,${(t * -34).toFixed(1)}px,0)`;
+          ghost.style.opacity = String(clamp(1 - Math.abs(t) * 1.3, 0, 1));
+        }
+        if (vis > 0.35 && !staged.has(i)) {
+          staged.add(i);
+          arrive(el);
+        }
+      });
+
+      // Blend the panel background colours weighted by how centred each one is.
       let r = 0;
       let g = 0;
       let b = 0;
@@ -123,6 +154,45 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
       cancelAnimationFrame(raf);
     };
   }, [milestones, mobile]);
+
+  /**
+   * First time a panel reaches centre stage: its year counts up while the
+   * letter-spacing settles, and the photograph arrives bright and slightly
+   * washed before settling to its final grade — the design's cinematic cut.
+   */
+  const arrive = (panel: HTMLElement) => {
+    const num = panel.querySelector<HTMLElement>("[data-num]");
+    if (!num || num.dataset.rolled) return;
+    num.dataset.rolled = "1";
+    const target = parseInt(num.textContent ?? "", 10);
+    if (target) {
+      num.style.transition = "letter-spacing 1.1s cubic-bezier(.22,1,.36,1)";
+      num.style.letterSpacing = ".18em";
+      const from = target - 14;
+      const t0 = performance.now();
+      const tick = (t: number) => {
+        const p = Math.min(1, (t - t0) / 1100);
+        const e = 1 - Math.pow(1 - p, 4);
+        num.textContent = String(Math.round(from + (target - from) * e));
+        if (p < 1) requestAnimationFrame(tick);
+        else num.style.letterSpacing = "0";
+      };
+      requestAnimationFrame(tick);
+    }
+    const img = panel.querySelector<HTMLImageElement>("[data-inner] img");
+    if (img) {
+      img.style.opacity = "0";
+      img.style.filter = "brightness(1.3) saturate(1.2)";
+      img.style.transition =
+        "filter 1.4s cubic-bezier(.22,1,.36,1),opacity 1.2s ease";
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          img.style.filter = "brightness(1) saturate(1)";
+          img.style.opacity = "1";
+        })
+      );
+    }
+  };
 
   const jumpTo = (year: string) => {
     const idx = milestones.findIndex(m => m.year === year);
@@ -299,20 +369,22 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
               "linear-gradient(to left,#000 88%,transparent 100%)",
           }}
         >
-          <img
-            src={image}
-            alt=""
-            className="absolute inset-y-0 block h-full object-cover"
-            style={{ left: -48, width: "calc(100% + 96px)" }}
-          />
-          <div className="pointer-events-none absolute inset-0 bg-white/[.18]" />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to right,rgba(8,31,84,0) 55%,rgba(8,31,84,.55) 85%,rgba(8,31,84,.75) 100%)",
-            }}
-          />
+          <div data-inner className="absolute inset-0 will-change-transform">
+            <img
+              src={image}
+              alt=""
+              className="absolute inset-y-0 block h-full object-cover"
+              style={{ left: -48, width: "calc(100% + 96px)" }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-white/[.18]" />
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to right,rgba(8,31,84,0) 55%,rgba(8,31,84,.55) 85%,rgba(8,31,84,.75) 100%)",
+              }}
+            />
+          </div>
         </div>
         <div className="relative z-[2] max-w-[640px] text-white">
           <div
@@ -356,17 +428,19 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
                 "linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 10%,#000 24%,#000 76%,rgba(0,0,0,.35) 90%,transparent 100%)",
             }}
           >
-            <img
-              src={image}
-              alt=""
-              className="absolute inset-y-0 block h-full object-cover"
-              style={{
-                left: -48,
-                width: "calc(100% + 96px)",
-                objectPosition: "center 30%",
-              }}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-[rgba(214,231,252,.28)]" />
+            <div data-inner className="absolute inset-0 will-change-transform">
+              <img
+                src={image}
+                alt=""
+                className="absolute inset-y-0 block h-full object-cover"
+                style={{
+                  left: -48,
+                  width: "calc(100% + 96px)",
+                  objectPosition: "center 30%",
+                }}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[rgba(214,231,252,.28)]" />
+            </div>
             <div
               className="pointer-events-none absolute inset-0 z-[2]"
               style={{
@@ -396,24 +470,27 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
     return (
       <div className="relative flex items-center" style={base}>
         <div className="absolute inset-0 overflow-hidden bg-white">
-          <img
-            src={image}
-            alt=""
-            className="absolute inset-0 block h-full w-full object-cover"
-            style={{ filter: "blur(30px)", transform: "scale(1.12)" }}
-          />
-          <img
-            src={image}
-            alt=""
-            className="absolute inset-0 block h-full w-full object-contain"
-          />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(0deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.6) 14%,rgba(255,255,255,0) 34%)",
-            }}
-          />
+          <div data-inner className="absolute inset-0 will-change-transform">
+            <img
+              src={image}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 block h-full w-full object-cover"
+              style={{ filter: "blur(30px)", transform: "scale(1.12)" }}
+            />
+            <img
+              src={image}
+              alt=""
+              className="absolute inset-0 block h-full w-full object-contain"
+            />
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(0deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.6) 14%,rgba(255,255,255,0) 34%)",
+              }}
+            />
+          </div>
         </div>
         <div
           className="pointer-events-none absolute inset-0 z-[1]"
@@ -446,7 +523,8 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
     return (
       <div className="relative flex items-center text-white" style={base}>
         <div
-          className="pointer-events-none absolute top-[6vh] right-[2vw]"
+          data-ghost
+          className="pointer-events-none absolute top-[6vh] right-[2vw] will-change-transform"
           style={{
             fontSize: "clamp(140px,22vw,320px)",
             fontWeight: 900,
@@ -463,16 +541,18 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
           style={{ gridTemplateColumns: "2fr 1fr" }}
         >
           <div className="relative h-screen self-center overflow-hidden">
-            <img
-              src={image}
-              alt=""
-              className="absolute inset-y-0 block h-full object-cover"
-              style={{ left: -48, right: -48, width: "calc(100% + 96px)" }}
-            />
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{ backgroundColor: "#2563EB30" }}
-            />
+            <div data-inner className="absolute inset-0 will-change-transform">
+              <img
+                src={image}
+                alt=""
+                className="absolute inset-y-0 block h-full object-cover"
+                style={{ left: -48, right: -48, width: "calc(100% + 96px)" }}
+              />
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ backgroundColor: "#2563EB30" }}
+              />
+            </div>
             <div
               className="pointer-events-none absolute inset-0 z-[2]"
               style={{
@@ -511,19 +591,21 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
             "linear-gradient(to right,transparent 0%,#000 14%,#000 55%,transparent 92%)",
         }}
       >
-        <img
-          src={image}
-          alt=""
-          className="absolute inset-y-0 block h-full object-cover"
-          style={{
-            left: -64,
-            right: -64,
-            width: "calc(100% + 128px)",
-            objectPosition: "center 30%",
-            filter: "saturate(.7)",
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[rgba(37,99,235,.3)]" />
+        <div data-inner className="absolute inset-0 will-change-transform">
+          <img
+            src={image}
+            alt=""
+            className="absolute inset-y-0 block h-full object-cover"
+            style={{
+              left: -64,
+              right: -64,
+              width: "calc(100% + 128px)",
+              objectPosition: "center 30%",
+              filter: "saturate(.7)",
+            }}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-[rgba(37,99,235,.3)]" />
+        </div>
         <div
           className="pointer-events-none absolute inset-0 z-[2]"
           style={{
@@ -570,6 +652,8 @@ function Year({
         : "clamp(56px,7vw,104px)";
   return (
     <div
+      data-num
+      className="will-change-transform"
       style={{
         fontSize,
         fontWeight: 900,

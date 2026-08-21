@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { SiteNav } from "@/components/site/SiteNav";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { HistoryJourney } from "@/components/site/HistoryJourney";
@@ -10,6 +10,12 @@ import { PRINCIPLES } from "@/data/principles";
 export default function About() {
   const root = useRef<HTMLDivElement>(null);
   useScrollReveal(root);
+
+  // The journey is scroll-driven from the top of the page; arriving from a
+  // scrolled route would otherwise land the visitor mid-filmstrip.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div ref={root} dir="rtl" className="min-h-screen bg-[#F7F9FD] font-kufi">
