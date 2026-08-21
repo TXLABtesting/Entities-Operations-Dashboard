@@ -1,30 +1,32 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
-import { SiteLayout } from "@/components/site/SiteLayout";
+import { Link, useLocation } from "wouter";
 import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from "@shared/const";
 
-/**
- * The soft sky-blue backdrop from the design's hero, reused so the gate reads
- * as part of the same world as the landing page.
- */
-const GATE_BACKDROP =
-  "radial-gradient(70% 62% at 80% 8%, rgba(178,219,250,.9) 0%, rgba(198,229,252,.42) 46%, rgba(220,240,254,0) 74%), radial-gradient(65% 58% at 8% 26%, rgba(190,224,251,.85) 0%, rgba(208,233,252,.38) 48%, rgba(228,243,254,0) 74%), radial-gradient(75% 66% at 28% 96%, rgba(171,215,249,.95) 0%, rgba(196,228,252,.45) 46%, rgba(224,241,254,0) 76%), linear-gradient(180deg, #FDFEFF 0%, #F5F9FE 40%, #EFF6FD 100%)";
+/** Links a signed-out visitor may leave the gate through. */
+const NAV = [
+  { href: ROUTES.home, label: "الصفحة الرئيسية" },
+  { href: ROUTES.about, label: "من نحن" },
+];
 
 /**
- * /login — the UAE PASS gate into منصة الإدخال.
+ * /login — the platform's gate, from the design's Login page: deep navy field
+ * with a faint dot matrix, the lockup over a glowing cluster, and a glass card
+ * holding the single UAE PASS entry.
  *
- * The portal's own design file was not part of the public-site handoff bundle
- * (only its assets were), so this screen is composed from those assets and the
- * bundle's tokens. Signing in currently opens the demo session — the visitor
- * lands back on the home page with the member navigation — and the UAE PASS
- * OIDC redirect replaces the demo when the platform connects.
+ * Signing in opens the demo session and returns to the landing page with the
+ * member navigation; the UAE PASS OIDC redirect replaces the demo when the
+ * platform connects.
  */
 export default function Login() {
   const { user, login } = useAuth();
   const [, navigate] = useLocation();
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Already signed in: the gate has nothing to offer, go home.
   useEffect(() => {
@@ -37,58 +39,117 @@ export default function Login() {
     setBusy(true);
     // A short beat where the real flow would round-trip to UAE PASS.
     window.setTimeout(() => {
-      login({ name: "أحمد المنصوري", role: "ممثل الجهة الاتحادية" });
+      login({ name: "أحمد المنصوري", role: "منسق المسار في الجهة الاتحادية" });
       navigate(ROUTES.home);
     }, 900);
   };
 
   return (
-    <SiteLayout background={GATE_BACKDROP}>
+    <div
+      dir="rtl"
+      className="relative flex min-h-screen flex-col overflow-hidden bg-[#0A1426]"
+    >
+      {/* faint dot matrix across the whole field */}
       <div
-        className="flex w-full items-center justify-center px-6"
-        style={{ minHeight: "100svh", paddingTop: 130, paddingBottom: 70 }}
-      >
-        <div className="w-full max-w-[440px] rounded-[22px] border border-[#E7ECF4] bg-white px-10 py-11 text-center shadow-[0_18px_44px_-30px_rgba(15,31,61,.35)] max-[480px]:px-6">
-          <img
-            src={BRAND.logoLockup}
-            alt="مشروع الذكاء الاصطناعي المساعد"
-            className="mx-auto h-[64px] object-contain"
-          />
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(122,172,255,.07) 1px, transparent 1.4px)",
+          backgroundSize: "26px 26px",
+        }}
+      />
+      {/* the glowing cluster beside the lockup */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          top: "18%",
+          right: "56%",
+          width: 460,
+          height: 360,
+          background:
+            "radial-gradient(closest-side, rgba(59,130,246,.22), transparent 72%)",
+          filter: "blur(4px)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          top: "22%",
+          right: "58%",
+          width: 300,
+          height: 220,
+          backgroundImage:
+            "radial-gradient(rgba(147,197,253,.5) 1.5px, transparent 2px)",
+          backgroundSize: "18px 18px",
+          maskImage: "radial-gradient(closest-side, #000, transparent 75%)",
+          WebkitMaskImage:
+            "radial-gradient(closest-side, #000, transparent 75%)",
+        }}
+      />
 
-          <h1 className="mt-8 mb-0 text-2xl font-black text-[#0F1F3D]">
+      <nav
+        className="relative z-10 flex items-center justify-center gap-2 px-6 py-4"
+        style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}
+      >
+        {NAV.map(link => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="whitespace-nowrap rounded-full px-5 py-[10px] text-[13.5px] font-bold text-white/80 transition-colors hover:text-white"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-16">
+        <img
+          src={BRAND.logoWhite}
+          alt="مشروع الذكاء الاصطناعي المساعد"
+          className="h-[104px] object-contain max-[480px]:h-[76px]"
+        />
+
+        <div
+          className="mt-14 w-full max-w-[560px] rounded-[24px] px-10 py-11 text-center max-[480px]:px-6"
+          style={{
+            background:
+              "linear-gradient(150deg, rgba(125,185,230,.28) 0%, rgba(56,105,160,.13) 40%, rgba(18,38,70,.05) 100%)",
+            border: "1px solid rgba(255,255,255,.12)",
+            boxShadow: "0 34px 90px -44px rgba(0,0,0,.65)",
+          }}
+        >
+          <h1 className="m-0 text-[26px] font-black text-white">
             تسجيل الدخول
           </h1>
-          <p className="mt-2 mb-0 text-[13.5px] font-semibold leading-[2] text-[#5E6E8C]">
-            الدخول إلى منصة الإدخال الخاصة بمشروع الذكاء الاصطناعي المساعد
-          </p>
 
           <button
             type="button"
             onClick={signIn}
             disabled={busy}
-            className="mt-8 flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-none bg-[#0F1F3D] px-5 py-[13px] text-[14.5px] font-extrabold text-white transition-all hover:bg-[#1B3260] disabled:cursor-wait"
-            style={{ opacity: busy ? 0.75 : 1 }}
+            className="mx-auto mt-7 flex w-full max-w-[480px] cursor-pointer items-center justify-center gap-3 rounded-[14px] border-none bg-white px-8 py-[13px] text-[15px] font-extrabold text-[#0F1F3D] transition-[filter] hover:brightness-95 disabled:cursor-wait"
+            style={{ opacity: busy ? 0.8 : 1 }}
           >
-            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-[9px] bg-white">
-              <img
-                src={BRAND.uaePass}
-                alt=""
-                className="h-[22px] w-[22px] object-contain"
-              />
-            </span>
+            <img
+              src={BRAND.uaePass}
+              alt=""
+              className="h-[22px] w-[22px] object-contain"
+            />
             {busy
               ? "جارِ التحقق من الهوية الرقمية…"
               : "تسجيل الدخول بالهوية الرقمية"}
           </button>
-          <div className="mt-[10px] text-[11px] font-bold tracking-[.08em] text-[#8A97AD]">
-            UAE PASS
-          </div>
 
-          <div className="mt-8 border-t border-[#EDF1F8] pt-5 text-xs font-semibold leading-[1.9] text-[#8A97AD]">
-            الدخول متاح للموظفين الحكوميين وممثلي الجهات الاتحادية المعتمدين
-          </div>
+          <p
+            className="mt-5 mb-0 text-[13px] font-bold leading-[1.9]"
+            style={{ color: "rgba(214,230,255,.85)" }}
+          >
+            هوية رقمية واحدة موثوقة لجميع المواطنين والمقيمين والزوار
+          </p>
         </div>
-      </div>
-    </SiteLayout>
+      </main>
+    </div>
   );
 }

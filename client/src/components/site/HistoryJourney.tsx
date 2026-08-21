@@ -236,7 +236,14 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
     >
       <div
         className="sticky top-0 h-screen overflow-hidden"
-        style={{ backgroundColor: tint }}
+        style={
+          {
+            backgroundColor: tint,
+            // Panels dissolve their edges into this, so seams track the
+            // blended backdrop instead of a fixed navy.
+            "--tint": tint,
+          } as React.CSSProperties
+        }
       >
         {/* faint grid, masked to the centre so the edges stay clean */}
         <div
@@ -347,7 +354,7 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
 /* -------------------------------------------------------------------------- */
 
 function Panel({ milestone }: { milestone: HistoryMilestone }) {
-  const { layout, width, bg, image, year, title, eyebrow } = milestone;
+  const { layout, width, image, year, title, eyebrow } = milestone;
 
   const base = {
     width: `${width}vw`,
@@ -444,7 +451,8 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
             <div
               className="pointer-events-none absolute inset-0 z-[2]"
               style={{
-                background: `linear-gradient(to right,${bg} 0%,rgba(239,237,232,.55) 30%,rgba(239,237,232,0) 62%)`,
+                background:
+                  "linear-gradient(to right,var(--tint) 0%,color-mix(in srgb, var(--tint) 55%, transparent) 30%,transparent 62%)",
               }}
             />
           </div>
@@ -496,7 +504,7 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
           className="pointer-events-none absolute inset-0 z-[1]"
           style={{
             background:
-              "linear-gradient(to right,#2563EB 0%,rgba(37,99,235,.5) 7%,rgba(37,99,235,0) 20%),linear-gradient(to left,#2563EB 0%,rgba(37,99,235,.5) 7%,rgba(37,99,235,0) 20%)",
+              "linear-gradient(to right,var(--tint) 0%,color-mix(in srgb, var(--tint) 50%, transparent) 7%,transparent 20%),linear-gradient(to left,var(--tint) 0%,color-mix(in srgb, var(--tint) 50%, transparent) 7%,transparent 20%)",
           }}
         />
         <div className="relative z-[2] flex w-full items-end justify-center self-end px-[6vw] pb-[6vh]">
@@ -540,7 +548,14 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
           className="relative grid w-full items-center"
           style={{ gridTemplateColumns: "2fr 1fr" }}
         >
-          <div className="relative h-screen self-center overflow-hidden">
+          <div
+            className="relative h-screen self-center overflow-hidden"
+            style={{
+              maskImage: "linear-gradient(to right,#000 72%,transparent 97%)",
+              WebkitMaskImage:
+                "linear-gradient(to right,#000 72%,transparent 97%)",
+            }}
+          >
             <div data-inner className="absolute inset-0 will-change-transform">
               <img
                 src={image}
@@ -557,7 +572,7 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
               className="pointer-events-none absolute inset-0 z-[2]"
               style={{
                 background:
-                  "linear-gradient(to right,#2563EB 0%,rgba(37,99,235,.5) 18%,rgba(37,99,235,0) 42%)",
+                  "linear-gradient(to right,var(--tint) 0%,color-mix(in srgb, var(--tint) 50%, transparent) 18%,transparent 42%)",
               }}
             />
           </div>
@@ -610,7 +625,7 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
           className="pointer-events-none absolute inset-0 z-[2]"
           style={{
             background:
-              "linear-gradient(to left,#2563EB 0%,rgba(37,99,235,.55) 22%,rgba(37,99,235,0) 48%)",
+              "linear-gradient(to left,var(--tint) 0%,color-mix(in srgb, var(--tint) 55%, transparent) 22%,transparent 48%)",
           }}
         />
       </div>
