@@ -588,16 +588,32 @@ function Year({
 function MobilePanel({ milestone }: { milestone: HistoryMilestone }) {
   const intro = milestone.layout === "intro";
   const lightPanel = milestone.bg === "#FFFFFF" || milestone.bg === "#EFEDE8";
+  const wideShot = milestone.layout === "bottom-center";
   return (
     <div
       className="relative px-[22px] py-14"
       style={{ background: milestone.bg }}
     >
-      <div className="relative mb-6 h-[46vh] overflow-hidden">
+      <div
+        className="relative mb-6 overflow-hidden"
+        style={{
+          // A 4:3 window loses far less of a landscape frame than the taller
+          // box the prototype used, and every photo declares the point that
+          // has to survive the crop.
+          aspectRatio: "4 / 3",
+          background: wideShot ? "#F2F4F7" : undefined,
+        }}
+      >
         <img
           src={milestone.image}
           alt=""
-          className="absolute inset-0 block h-full w-full object-cover"
+          className="absolute inset-0 block h-full w-full"
+          style={{
+            // The 2017 hall photograph puts its subjects at both far edges,
+            // so any crop loses one of them — show the whole frame instead.
+            objectFit: wideShot ? "contain" : "cover",
+            objectPosition: milestone.focus ?? "50% 50%",
+          }}
         />
       </div>
       {intro ? (

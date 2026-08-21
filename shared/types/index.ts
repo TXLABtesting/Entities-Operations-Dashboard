@@ -33,6 +33,12 @@ export interface HistoryMilestone {
   layout: "intro" | "split" | "bottom-start" | "bottom-center" | "final";
   /** Panel width as a viewport percentage. */
   width: number;
+  /**
+   * Where the people are in the photograph, as an `object-position` value.
+   * The desktop panels are wide enough to show the whole frame; the stacked
+   * mobile panels crop it, so each image says which part must survive.
+   */
+  focus?: string;
   /** Intro panel copy. */
   eyebrow?: string;
 }

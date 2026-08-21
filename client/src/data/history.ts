@@ -15,6 +15,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.histIntro,
     layout: "intro",
     width: 100,
+    focus: "24% 45%",
   },
   {
     year: "2001",
@@ -23,6 +24,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.hist2001,
     layout: "split",
     width: 80,
+    focus: "50% 30%",
   },
   {
     year: "2013",
@@ -31,6 +33,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.hist2013,
     layout: "bottom-start",
     width: 76,
+    focus: "42% 38%",
   },
   {
     year: "2017",
@@ -39,6 +42,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.hist2017,
     layout: "bottom-center",
     width: 72,
+    focus: "50% 42%",
   },
   {
     year: "2019",
@@ -47,6 +51,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.hist2019,
     layout: "bottom-start",
     width: 76,
+    focus: "44% 45%",
   },
   {
     year: "2026",
@@ -55,6 +60,7 @@ export const HISTORY: HistoryMilestone[] = [
     image: MEDIA.hist2026,
     layout: "final",
     width: 100,
+    focus: "50% 52%",
   },
 ];
 
