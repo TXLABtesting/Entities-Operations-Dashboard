@@ -88,7 +88,8 @@ export function HistoryJourney({ milestones }: HistoryJourneyProps) {
       smooth.current += (target - smooth.current) * k;
       if (Math.abs(target - smooth.current) < 0.00015) smooth.current = target;
 
-      const x = smooth.current * scrollLen.current;
+      const dpr = window.devicePixelRatio || 1;
+      const x = Math.round(smooth.current * scrollLen.current * dpr) / dpr;
       track.style.transform = `translate3d(${x}px,0,0)`;
       setProgress(smooth.current);
 
@@ -371,9 +372,9 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
         <div
           className="absolute inset-0 overflow-hidden"
           style={{
-            maskImage: "linear-gradient(to left,#000 88%,transparent 100%)",
+            maskImage: "linear-gradient(to left,#000 86%,transparent 98%)",
             WebkitMaskImage:
-              "linear-gradient(to left,#000 88%,transparent 100%)",
+              "linear-gradient(to left,#000 86%,transparent 98%)",
           }}
         >
           <div data-inner className="absolute inset-0 will-change-transform">
@@ -430,9 +431,9 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
             className="relative h-screen overflow-hidden"
             style={{
               maskImage:
-                "linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 10%,#000 24%,#000 76%,rgba(0,0,0,.35) 90%,transparent 100%)",
+                "linear-gradient(to right,transparent 2%,rgba(0,0,0,.35) 10%,#000 24%,#000 76%,rgba(0,0,0,.35) 90%,transparent 98%)",
               WebkitMaskImage:
-                "linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 10%,#000 24%,#000 76%,rgba(0,0,0,.35) 90%,transparent 100%)",
+                "linear-gradient(to right,transparent 2%,rgba(0,0,0,.35) 10%,#000 24%,#000 76%,rgba(0,0,0,.35) 90%,transparent 98%)",
             }}
           >
             <div data-inner className="absolute inset-0 will-change-transform">
@@ -601,9 +602,9 @@ function Panel({ milestone }: { milestone: HistoryMilestone }) {
         className="absolute inset-0 overflow-hidden"
         style={{
           maskImage:
-            "linear-gradient(to right,transparent 0%,#000 14%,#000 55%,transparent 92%)",
+            "linear-gradient(to right,transparent 2%,#000 14%,#000 55%,transparent 92%)",
           WebkitMaskImage:
-            "linear-gradient(to right,transparent 0%,#000 14%,#000 55%,transparent 92%)",
+            "linear-gradient(to right,transparent 2%,#000 14%,#000 55%,transparent 92%)",
         }}
       >
         <div data-inner className="absolute inset-0 will-change-transform">
