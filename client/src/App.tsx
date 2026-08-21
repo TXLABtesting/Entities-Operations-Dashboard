@@ -1,4 +1,5 @@
 import { Route, Switch, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -24,10 +25,21 @@ function Router() {
   );
 }
 
+/**
+ * Static preview hosts serve one document and cannot rewrite deep links back
+ * to it, so a path router 404s on every route but the first. Building with
+ * VITE_HASH_ROUTER=true moves routing into the URL fragment, which those hosts
+ * never see. Normal builds keep clean paths.
+ */
+const hashRouting = import.meta.env.VITE_HASH_ROUTER === "true";
+
 function App() {
   return (
     <ErrorBoundary>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+      <WouterRouter
+        base={hashRouting ? "" : import.meta.env.BASE_URL.replace(/\/$/, "")}
+        hook={hashRouting ? useHashLocation : undefined}
+      >
         <Router />
       </WouterRouter>
     </ErrorBoundary>

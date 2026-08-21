@@ -7,8 +7,15 @@
  */
 const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
-/** Prefix a public-folder path with the configured base. */
-export const asset = (path: string) => `${BASE}/${path.replace(/^\//, "")}`;
+/**
+ * Prefix a public-folder path with the configured base. A value that already
+ * carries a scheme — a CDN URL, or a data URI in a self-contained build — is
+ * already absolute and passes through untouched.
+ */
+export const asset = (path: string) =>
+  /^[a-z][a-z0-9+.-]*:/i.test(path)
+    ? path
+    : `${BASE}/${path.replace(/^\//, "")}`;
 
 export const BRAND = {
   /** Wordmark used in the floating top nav (light backgrounds). */
