@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { BRAND } from "@/lib/brand";
+import { useAuth } from "@/contexts/AuthContext";
+import { ROUTES } from "@shared/const";
 
 /**
  * The soft sky-blue backdrop from the design's hero, reused so the gate reads
@@ -14,11 +17,30 @@ const GATE_BACKDROP =
  *
  * The portal's own design file was not part of the public-site handoff bundle
  * (only its assets were), so this screen is composed from those assets and the
- * bundle's tokens. The button is the visual entry point only for now; the
- * UAE PASS OIDC flow is wired when the platform connects.
+ * bundle's tokens. Signing in currently opens the demo session — the visitor
+ * lands back on the home page with the member navigation — and the UAE PASS
+ * OIDC redirect replaces the demo when the platform connects.
  */
 export default function Login() {
-  const [notice, setNotice] = useState(false);
+  const { user, login } = useAuth();
+  const [, navigate] = useLocation();
+  const [busy, setBusy] = useState(false);
+
+  // Already signed in: the gate has nothing to offer, go home.
+  useEffect(() => {
+    if (user && !busy) navigate(ROUTES.home, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const signIn = () => {
+    if (busy) return;
+    setBusy(true);
+    // A short beat where the real flow would round-trip to UAE PASS.
+    window.setTimeout(() => {
+      login({ name: "أحمد المنصوري", role: "ممثل الجهة الاتحادية" });
+      navigate(ROUTES.home);
+    }, 900);
+  };
 
   return (
     <SiteLayout background={GATE_BACKDROP}>
@@ -42,8 +64,10 @@ export default function Login() {
 
           <button
             type="button"
-            onClick={() => setNotice(true)}
-            className="mt-8 flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-none bg-[#0F1F3D] px-5 py-[13px] text-[14.5px] font-extrabold text-white transition-colors hover:bg-[#1B3260]"
+            onClick={signIn}
+            disabled={busy}
+            className="mt-8 flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-none bg-[#0F1F3D] px-5 py-[13px] text-[14.5px] font-extrabold text-white transition-all hover:bg-[#1B3260] disabled:cursor-wait"
+            style={{ opacity: busy ? 0.75 : 1 }}
           >
             <span className="flex h-8 w-8 flex-none items-center justify-center rounded-[9px] bg-white">
               <img
@@ -52,20 +76,13 @@ export default function Login() {
                 className="h-[22px] w-[22px] object-contain"
               />
             </span>
-            تسجيل الدخول بالهوية الرقمية
+            {busy
+              ? "جارِ التحقق من الهوية الرقمية…"
+              : "تسجيل الدخول بالهوية الرقمية"}
           </button>
           <div className="mt-[10px] text-[11px] font-bold tracking-[.08em] text-[#8A97AD]">
             UAE PASS
           </div>
-
-          {notice && (
-            <div
-              role="status"
-              className="mt-6 rounded-[14px] border border-[#C9DBF8] bg-[#EAF1FE] px-4 py-3 text-[12.5px] font-bold leading-[1.9] text-[#1F3D77]"
-            >
-              سيتم تفعيل الدخول عبر الهوية الرقمية عند إطلاق المنصة.
-            </div>
-          )}
 
           <div className="mt-8 border-t border-[#EDF1F8] pt-5 text-xs font-semibold leading-[1.9] text-[#8A97AD]">
             الدخول متاح للموظفين الحكوميين وممثلي الجهات الاتحادية المعتمدين

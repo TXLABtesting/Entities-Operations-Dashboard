@@ -3,21 +3,45 @@ import { Link, useLocation } from "wouter";
 import { BRAND } from "@/lib/brand";
 import { NAV_BREAKPOINT, ROUTES } from "@shared/const";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavLink {
   href: string;
   label: string;
 }
 
-/**
- * Links a signed-out visitor sees. المنشورات and تواصل معنا are member-only in
- * the design (its nav hides them behind `memberLinkDisplay` until login), so
- * they join this list when the auth provider lands.
- */
-const LINKS: NavLink[] = [
+/** Links every visitor sees. */
+const PUBLIC_LINKS: NavLink[] = [
   { href: ROUTES.home, label: "الرئيسية" },
   { href: ROUTES.about, label: "من نحن" },
 ];
+
+/** Member-only links — the design keeps these hidden until sign-in. */
+const MEMBER_LINKS: NavLink[] = [
+  { href: ROUTES.library, label: "المنشورات" },
+  { href: ROUTES.contact, label: "تواصل معنا" },
+];
+
+const CTA_GRADIENT =
+  "linear-gradient(135deg,#0158DF 0%,#0098F8 55%,#00B8F8 100%)";
+
+function UserIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.8 20c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6" />
+    </svg>
+  );
+}
 
 interface SiteNavProps {
   /**
@@ -30,15 +54,22 @@ interface SiteNavProps {
 /**
  * The floating pill navigation shared by every public page. It hides on
  * scroll-down / reappears on scroll-up, and collapses to a hamburger drawer
- * below 1040px.
+ * below 1040px. Signed-out visitors see الرئيسية · من نحن · تسجيل الدخول;
+ * after sign-in the member links appear along with the منصة الإدخال button
+ * and the account menu.
  */
 export function SiteNav({ overHero = false }: SiteNavProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const lastY = useRef(0);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const narrow = useMediaQuery(`(max-width: ${NAV_BREAKPOINT - 1}px)`);
+
+  const links = user ? [...PUBLIC_LINKS, ...MEMBER_LINKS] : PUBLIC_LINKS;
 
   useEffect(() => {
     lastY.current = window.scrollY;
@@ -56,11 +87,39 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close the drawer on navigation and whenever the viewport grows wide again.
-  useEffect(() => setMenuOpen(false), [location]);
+  // Close menus on navigation and whenever the viewport grows wide again.
+  useEffect(() => {
+    setMenuOpen(false);
+    setUserMenuOpen(false);
+  }, [location]);
   useEffect(() => {
     if (!narrow) setMenuOpen(false);
   }, [narrow]);
+
+  // The account menu closes on an outside click or Escape.
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!userMenuRef.current?.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [userMenuOpen]);
+
+  const signOut = () => {
+    logout();
+    setUserMenuOpen(false);
+    navigate(ROUTES.home);
+  };
 
   const solid = scrolled || !overHero;
 
@@ -99,7 +158,7 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
             className="flex min-w-0 flex-[0_1_auto] items-center justify-center"
             style={{ gap: "clamp(6px,1.4vw,30px)" }}
           >
-            {LINKS.map(link => {
+            {links.map(link => {
               const active = link.href === location;
               return (
                 <Link
@@ -120,14 +179,13 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
           </nav>
         )}
 
-        {!narrow && (
+        {!narrow && !user && (
           <div className="flex flex-1 justify-end">
             <Link
               href={ROUTES.login}
               className="inline-block flex-none whitespace-nowrap rounded-full text-white transition-transform hover:-translate-y-px"
               style={{
-                background:
-                  "linear-gradient(135deg,#0158DF 0%,#0098F8 55%,#00B8F8 100%)",
+                background: CTA_GRADIENT,
                 padding: "11px clamp(16px,2vw,28px)",
                 fontSize: 13,
                 fontWeight: 800,
@@ -135,6 +193,59 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
             >
               تسجيل الدخول
             </Link>
+          </div>
+        )}
+
+        {!narrow && user && (
+          <div className="flex flex-1 items-center justify-end gap-[10px]">
+            <Link
+              href={ROUTES.dashboard}
+              className="inline-block flex-none whitespace-nowrap rounded-full text-white transition-transform hover:-translate-y-px"
+              style={{
+                background: CTA_GRADIENT,
+                padding: "11px clamp(16px,2vw,24px)",
+                fontSize: 13,
+                fontWeight: 800,
+              }}
+            >
+              منصة الإدخال
+            </Link>
+            <div ref={userMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen(open => !open)}
+                aria-label="حساب المستخدم"
+                aria-expanded={userMenuOpen}
+                className="flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border-none bg-[#0F1F3D] text-white transition-all hover:-translate-y-px hover:brightness-95"
+              >
+                <UserIcon />
+              </button>
+              {userMenuOpen && (
+                <div className="absolute top-[52px] left-0 z-[90] flex min-w-[216px] flex-col gap-[2px] rounded-2xl border border-[#E6ECF6] bg-white p-[10px] shadow-[0_26px_54px_-26px_rgba(15,31,61,.4)]">
+                  <div className="mb-[6px] border-b border-[#F0F4FA] px-3 pt-[10px] pb-3 text-right">
+                    <div className="text-[13.5px] font-black text-[#0F1F3D]">
+                      {user.name}
+                    </div>
+                    <div className="mt-1 text-[11.5px] font-bold text-[#7C8AA3]">
+                      {user.role}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="cursor-pointer rounded-[10px] border-none bg-transparent px-3 py-[11px] text-right text-[13px] font-extrabold text-[#0F1F3D] transition-colors hover:bg-[#F4F7FC]"
+                  >
+                    الملف الشخصي
+                  </button>
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    className="cursor-pointer rounded-[10px] border-none bg-transparent px-3 py-[11px] text-right text-[13px] font-extrabold text-[#C0392B] transition-colors hover:bg-[#FDF1EF]"
+                  >
+                    تسجيل الخروج
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -164,7 +275,7 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
 
             {menuOpen && (
               <div className="absolute top-14 left-0 z-[90] flex min-w-[242px] flex-col gap-[2px] rounded-[18px] border border-[#E6ECF6] bg-white p-[10px] shadow-[0_28px_58px_-26px_rgba(15,31,61,.42)]">
-                {LINKS.map(link => (
+                {links.map(link => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -173,12 +284,47 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
                     {link.label}
                   </Link>
                 ))}
-                <Link
-                  href={ROUTES.login}
-                  className="mt-2 rounded-full bg-[#0F1F3D] px-[18px] py-[13px] text-center text-[13.5px] font-extrabold text-white"
-                >
-                  تسجيل الدخول
-                </Link>
+                {!user ? (
+                  <Link
+                    href={ROUTES.login}
+                    className="mt-2 rounded-full bg-[#0F1F3D] px-[18px] py-[13px] text-center text-[13.5px] font-extrabold text-white"
+                  >
+                    تسجيل الدخول
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href={ROUTES.dashboard}
+                      className="mt-2 rounded-full px-[18px] py-[13px] text-center text-[13.5px] font-extrabold text-white"
+                      style={{ background: CTA_GRADIENT }}
+                    >
+                      منصة الإدخال
+                    </Link>
+                    <div className="mt-2 flex flex-col gap-[2px] border-t border-[#F0F4FA] pt-2">
+                      <div className="px-[14px] pt-2 pb-[6px] text-right">
+                        <div className="text-[13.5px] font-black text-[#0F1F3D]">
+                          {user.name}
+                        </div>
+                        <div className="mt-[3px] text-[11.5px] font-bold text-[#7C8AA3]">
+                          {user.role}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="cursor-pointer rounded-xl border-none bg-transparent px-[14px] py-3 text-right text-sm font-extrabold text-[#0F1F3D] transition-colors hover:bg-[#F4F7FC]"
+                      >
+                        الملف الشخصي
+                      </button>
+                      <button
+                        type="button"
+                        onClick={signOut}
+                        className="cursor-pointer rounded-xl border-none bg-transparent px-[14px] py-3 text-right text-sm font-extrabold text-[#C0392B] transition-colors hover:bg-[#FDF1EF]"
+                      >
+                        تسجيل الخروج
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

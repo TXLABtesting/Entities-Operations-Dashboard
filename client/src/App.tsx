@@ -1,11 +1,13 @@
 import { Route, Switch, Router as WouterRouter } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Library from "./pages/Library";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { ROUTES } from "@shared/const";
 
@@ -21,6 +23,7 @@ function Router() {
       <Route path={ROUTES.library} component={Library} />
       <Route path={ROUTES.contact} component={Contact} />
       <Route path={ROUTES.login} component={Login} />
+      <Route path={ROUTES.dashboard} component={Dashboard} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -38,12 +41,14 @@ const hashRouting = import.meta.env.VITE_HASH_ROUTER === "true";
 function App() {
   return (
     <ErrorBoundary>
-      <WouterRouter
-        base={hashRouting ? "" : import.meta.env.BASE_URL.replace(/\/$/, "")}
-        hook={hashRouting ? useHashLocation : undefined}
-      >
-        <Router />
-      </WouterRouter>
+      <AuthProvider>
+        <WouterRouter
+          base={hashRouting ? "" : import.meta.env.BASE_URL.replace(/\/$/, "")}
+          hook={hashRouting ? useHashLocation : undefined}
+        >
+          <Router />
+        </WouterRouter>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
