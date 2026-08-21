@@ -126,6 +126,18 @@ textarea {
   }
 }
 
+/* The design portal's entrance for the login column. */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Library document actions: hover reveals them on pointer devices, but a touch
    screen has no hover — show them there so the buttons stay reachable. */
 @media (hover: none) {
