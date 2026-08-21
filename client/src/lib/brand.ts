@@ -30,6 +30,10 @@ export const BRAND = {
   logoBlue: asset("assets/web/logo-blue-z.png"),
   /** Square project logo. */
   logo: asset("assets/logo.png"),
+  /** Full lockup used on the login gate. */
+  logoLockup: asset("assets/logo-lockup-z.png"),
+  /** UAE PASS fingerprint mark. */
+  uaePass: asset("assets/uaepass-finger.png"),
 };
 
 export const MEDIA = {

@@ -9,11 +9,14 @@ interface NavLink {
   label: string;
 }
 
+/**
+ * Links a signed-out visitor sees. المنشورات and تواصل معنا are member-only in
+ * the design (its nav hides them behind `memberLinkDisplay` until login), so
+ * they join this list when the auth provider lands.
+ */
 const LINKS: NavLink[] = [
   { href: ROUTES.home, label: "الرئيسية" },
   { href: ROUTES.about, label: "من نحن" },
-  { href: ROUTES.library, label: "المنشورات" },
-  { href: ROUTES.contact, label: "تواصل معنا" },
 ];
 
 interface SiteNavProps {
@@ -119,8 +122,8 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
 
         {!narrow && (
           <div className="flex flex-1 justify-end">
-            <a
-              href={ROUTES.home}
+            <Link
+              href={ROUTES.login}
               className="inline-block flex-none whitespace-nowrap rounded-full text-white transition-transform hover:-translate-y-px"
               style={{
                 background:
@@ -131,7 +134,7 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
               }}
             >
               تسجيل الدخول
-            </a>
+            </Link>
           </div>
         )}
 
@@ -170,12 +173,12 @@ export function SiteNav({ overHero = false }: SiteNavProps) {
                     {link.label}
                   </Link>
                 ))}
-                <a
-                  href={ROUTES.home}
+                <Link
+                  href={ROUTES.login}
                   className="mt-2 rounded-full bg-[#0F1F3D] px-[18px] py-[13px] text-center text-[13.5px] font-extrabold text-white"
                 >
                   تسجيل الدخول
-                </a>
+                </Link>
               </div>
             )}
           </div>

@@ -4,6 +4,7 @@ export const ROUTES = {
   about: "/about",
   library: "/library",
   contact: "/contact",
+  login: "/login",
 } as const;
 
 /** Copy that appears on every page. */

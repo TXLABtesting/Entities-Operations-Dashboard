@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Library from "./pages/Library";
 import Contact from "./pages/Contact";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ROUTES } from "@shared/const";
 
@@ -19,6 +20,7 @@ function Router() {
       <Route path={ROUTES.about} component={About} />
       <Route path={ROUTES.library} component={Library} />
       <Route path={ROUTES.contact} component={Contact} />
+      <Route path={ROUTES.login} component={Login} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
