@@ -3,8 +3,8 @@ name: Deploy public site to GitHub Pages
 # Builds the public site and publishes it to GitHub Pages so the pages can be
 # opened and tested on a real device before the platform is wired up.
 #
-# Enable Pages once, after the first run: repo Settings -> Pages -> Source:
-# "GitHub Actions". The site is then served at:
+# The deploy job enables Pages itself on first run (configure-pages with
+# enablement) — the repository only needs to be public. The site is served at:
 #   https://<owner>.github.io/<repo>/
 
 on:
@@ -63,6 +63,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Enable Pages if this is the first deployment
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
