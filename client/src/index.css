@@ -46,6 +46,11 @@ body {
   font-family: var(--font-sans);
   background: var(--surface);
   color: var(--ink);
+  /* The design files run on a plain document, so anything without an explicit
+     line-height uses `normal`. Tailwind's preflight sets 1.5 on <html>, which
+     shortens every input, textarea and heading the design leaves unset — so
+     hand `normal` back here and let the transcribed values do the rest. */
+  line-height: normal;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }

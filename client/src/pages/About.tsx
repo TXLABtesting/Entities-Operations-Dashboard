@@ -12,7 +12,7 @@ export default function About() {
   useScrollReveal(root);
 
   return (
-    <div ref={root} dir="rtl" className="min-h-screen bg-[#F7F9FD]">
+    <div ref={root} dir="rtl" className="min-h-screen bg-[#F7F9FD] font-kufi">
       <SiteNav overHero />
       <HistoryJourney milestones={HISTORY} />
       <Quote />

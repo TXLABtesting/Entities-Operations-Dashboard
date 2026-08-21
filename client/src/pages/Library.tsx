@@ -67,7 +67,7 @@ export default function Library() {
 
   return (
     <SiteLayout background="#FFFFFF">
-      <div className="mx-auto w-full max-w-[1240px] bg-white px-10 pt-[170px] pb-[90px] max-[780px]:px-5 max-[780px]:pt-[130px] max-[780px]:pb-[60px]">
+      <div className="mx-auto w-full max-w-[1240px] bg-white px-10 pt-[170px] pb-[90px] font-kufi max-[780px]:px-5 max-[780px]:pt-[130px] max-[780px]:pb-[60px]">
         <header className="mb-11 flex flex-wrap items-center justify-between gap-6">
           <h1
             className="m-0 text-right font-normal text-black"
